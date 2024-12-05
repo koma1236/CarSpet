@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Автомобили</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="container-fluid mt-2">
+        <div class="row">
+            <div class="">
+                <div class="card">
+                    <div class="card-header">
+                        {{ car.make }} {{ car.model }} {{ car.year }}
+                        {% if request.user == car.owner %}
+                            <button type="button" class="btn btn-warning float-end" data-toggle="modal" data-target="#editCarModal">
+                                Редактировать
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p>{{ car.description }}</p>
+                        <p>Дата создания: {{ car.created_at }}</p>
+                        <p>Дата обновления: {{ car.updated_at }}</p>
+                        <p>Владелец: {{ car.owner.username }}</p>
+
+                        <h2 class="mt-4">Комментарии</h2>
+                        <ul class="list-group">
+                            {% for comment in comments %}
+                                <li class="list-group-item">
+                                    {{ comment.text }}
+                                    <small class="text-muted">От
+                                        <b>{{ comment.author.username }}</b> {{ comment.created_at }}</small>
+                                    <p><span>{{ comment.content }}</span></p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if request.user.is_authenticated %}
+                            <form method="post" class="mt-4">
+                                {% csrf_token %}
+                                <textarea name="text" placeholder="Введите комментарий" class="form-control"></textarea>
+                                <button type="submit" class="btn btn-primary mt-2 float-end">Отправить</button>
+                            </form>
+                        {% else %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <p>Для добавления комментариев необходимо <a
+                                            href="{% url 'login' %}">авторизоваться</a></p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования автомобиля -->
+    <div class="modal fade" id="editCarModal" tabindex="-1" aria-labelledby="editCarModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCarModalLabel">Редактировать автомобиль</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/edit-car/{{ car.id }}/">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="make" class="form-label">Марка</label>
+                            <input type="text" name="make" class="form-control" id="make" value="{{ car.make }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="model" class="form-label">Модель</label>
+                            <input type="text" name="model" class="form-control" id="model" value="{{ car.model }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="year" class="form-label">Год выпуска</label>
+                            <input type="number" name="year" class="form-control" id="year" value="{{ car.year }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea name="description" class="form-control" id="description">{{ car.description }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
